@@ -14,8 +14,11 @@ namespace VectorClocks
             new VectorClock(0, Array.Empty<int>(), Array.Empty<long>(), Array.Empty<string>());
 
         private readonly int length;
+
+        //TODO: turn nodeHashes and values to pointers - potentially stackalloc for small number of nodes?
         private readonly int[] nodeHashes;
         private readonly long[] values;
+
         private readonly string[] nodes;
 
         private VectorClock(int length, int[] nodeHashes, long[] values, string[] nodes)
@@ -215,7 +218,77 @@ namespace VectorClocks
 
         public int? PartiallyCompareTo(VectorClock other)
         {
-            throw new NotImplementedException();
+            if (ReferenceEquals(nodeHashes, other.nodeHashes)
+                && ReferenceEquals(nodes, other.nodes)
+                && ReferenceEquals(values, other.values)) return 0;
+
+            // empty vector clock comparisons
+            if (length == 0)
+            {
+                // if both clock are empty, they are equal,
+                // if other was not empty, current is always less then
+                return other.length == 0 ? 0 : -1;
+            }
+            else if (other.length == 0)
+            {
+                // this current clock is not-empty, but other was
+                // current is always greater
+                return 1;
+            }
+
+            if (HaveSameNodes(other))
+            {
+                return FastCompareTo(other);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private int? FastCompareTo(in VectorClock other)
+        {
+            var others = other.values;
+            var i = 0;
+            bool isGraterOrEqual = false, isLessOrEqual = false, isEqual = true;
+            if (Vector.IsHardwareAccelerated && length >= Vector<long>.Count)
+            {
+                var nLength = length - Vector<long>.Count;
+                do
+                {
+                    var a = new Vector<long>(values, i);
+                    var b = new Vector<long>(others, i);
+
+                    isGraterOrEqual |= Vector.GreaterThanOrEqualAll(a, b);
+                    isLessOrEqual |= Vector.GreaterThanOrEqualAll(a, b);
+                    isEqual &= Vector.EqualsAll(a, b);
+
+                    // if we had oposing values at least once, clocks are concurrent
+                    if (isGraterOrEqual && isLessOrEqual) return null;
+
+                    i += Vector<long>.Count;
+                } while (nLength >= i);
+            }
+
+            while (i < length)
+            {
+                var a = values[i];
+                var b = others[i];
+
+                isGraterOrEqual |= (a >= b);
+                isLessOrEqual |= (a <= b);
+                isEqual &= (a == b);
+
+                // if we had oposing values at least once, clocks are concurrent
+                if (isGraterOrEqual && isLessOrEqual) return null;
+
+                i++;
+            }
+
+            // at this point, we already covered all concurrent cases
+            if (isEqual) return 0;          // both clocks were equal for entire time
+            else if (isGraterOrEqual) return 1;
+            else return -1;                     // implicitly this must be isLessOrEqual
         }
 
         public VectorClock Increment(string node)
