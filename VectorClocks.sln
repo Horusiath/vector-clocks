@@ -3,11 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorClocks", "VectorClocks\VectorClocks.csproj", "{BB3BCF05-1579-4C64-840E-102B625DBC11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorClocks", "VectorClocks\VectorClocks.csproj", "{BB3BCF05-1579-4C64-840E-102B625DBC11}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorClocks.Tests", "VectorClocks.Tests\VectorClocks.Tests.csproj", "{AB291E83-16A5-43F6-9789-8227607616CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorClocks.Tests", "VectorClocks.Tests\VectorClocks.Tests.csproj", "{AB291E83-16A5-43F6-9789-8227607616CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorClocks.Benchmarks", "VectorClocks.Benchmarks\VectorClocks.Benchmarks.csproj", "{C38D01EF-ED4F-440F-AF60-286F0E04BB12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorClocks.Benchmarks", "VectorClocks.Benchmarks\VectorClocks.Benchmarks.csproj", "{C38D01EF-ED4F-440F-AF60-286F0E04BB12}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{515EC3B7-6556-40DC-9AD2-F1BDC5E792DB}"
+	ProjectSection(SolutionItems) = preProject
+		REAME.md = REAME.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

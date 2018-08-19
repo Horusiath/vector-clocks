@@ -13,6 +13,8 @@ namespace VectorClocks
         public static readonly VectorClock Empty =
             new VectorClock(0, Array.Empty<int>(), Array.Empty<long>(), Array.Empty<string>());
 
+        //TODO: use length-based choice to pick vecorization for lookups instead of binary search.
+        // Should be faster at least for small lengths.
         private readonly int length;
 
         //TODO: turn nodeHashes and values to pointers - potentially stackalloc for small number of nodes?
@@ -55,7 +57,6 @@ namespace VectorClocks
 
         public bool TryGetValue(string node, out long value)
         {
-            // lookup by hashes - memory locality FTW
             var idx = Array.BinarySearch(nodes, node);
             if (idx >= 0)
             {
@@ -83,7 +84,29 @@ namespace VectorClocks
 
         public VectorClock Prune(string node)
         {
-            throw new NotImplementedException();
+            var idx = Array.BinarySearch(nodes, node);
+            if (idx >= 0)
+            {
+                var newLength = length - 1;
+                var newNodeHashes = RemoveAt(nodeHashes, newLength, idx);
+                var newValues = RemoveAt(values, newLength, idx);
+                var newNodes = RemoveAt(nodes, newLength, idx);
+                
+                return new VectorClock(newLength, newNodeHashes, newValues, newNodes);
+            }
+            else return this;
+        }
+
+        private static T[] RemoveAt<T>(T[] source, int length, int index)
+        {
+            var dest = new T[length];
+            if (index > 0)
+                Array.Copy(source, dest, index);
+
+            if (index < length)
+                Array.Copy(source, index, dest, index + 1, length - index);
+
+            return dest;
         }
 
         private static T[] InsertAt<T>(T[] source, int length, T element, int index)
@@ -95,7 +118,7 @@ namespace VectorClocks
             dest[index] = element;
 
             if (index < length)
-                Array.Copy(source, index, dest, index + 1, length - index);
+                Array.Copy(source, index + 1, dest, index, length - index - 1);
 
             return dest;
         }
