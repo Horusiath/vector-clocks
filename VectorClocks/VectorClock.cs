@@ -265,8 +265,112 @@ namespace VectorClocks
             }
             else
             {
-                throw new NotImplementedException();
+                return ExactCompareTo(other);
             }
+        }
+
+        private int? ExactCompareTo(in VectorClock other)
+        {
+            bool isGraterOrEqual = false, isLessOrEqual = false;
+            int i = 0, j = 0, prevCmp = 0;
+            do
+            {
+                var a = nodes[i];
+                var b = other.nodes[j];
+
+                var cmp = string.Compare(a, b, StringComparison.InvariantCulture);
+
+                if (cmp == 0)
+                {
+                    var x = values[i].CompareTo(other.values[j]);
+                    if (CompareValues(x, ref isLessOrEqual, ref isGraterOrEqual)) return null;
+
+                    i++;
+                    j++;
+                }
+                else if (cmp > 0)
+                {
+                    if (prevCmp < 0)
+                    {
+                        // current i-key is greater than j-key, but previously it was lesser
+                        // it means, that key doesn't exists in second clock, so it's greater
+                        isGraterOrEqual = true;
+                    }
+
+                    j++;
+                }
+                else // cmp < 0
+                {
+                    if (prevCmp > 0)
+                    {
+                        isLessOrEqual = true;
+                    }
+
+                    i++;
+                }
+
+                prevCmp = cmp;
+
+            } while (i < length || j < other.length);
+
+            if (i == length) // reached the end of this clock
+            {
+                if (length > other.length) // this is longer than other
+                {
+                    if (isGraterOrEqual) return 1;  // it was greater all the time
+                    else return null;               // if it was not greater, it was not equal anyway,
+                                                    //   because of different vector lengths, so it
+                                                    //   was less at least once, so in summary it's concurrent
+                }
+                else // other is longer
+                {
+                    if (isLessOrEqual) return -1;   // reasoning similar as one above
+                    else return null;
+                }
+            }
+            else if (j == length) // reached the end of other clock but not this one
+            {
+                if (isLessOrEqual) return null;     // we haven't read entire current clock, so it will
+                                                    //   be greater as some point, so if it was less once
+                                                    //   it's actually concurrent
+                else return 1;
+            }
+            else
+            {
+                // both clocks reached their ends - the result is ultimate
+                if (isGraterOrEqual) return 1;
+                else return -1;                 // implicit isLessOrEqual
+            }
+        }
+
+        private static bool CompareValues(int x, ref bool isLessOrEqual, ref bool isGraterOrEqual)
+        {
+            if (x >= 0)
+            {
+                if (isLessOrEqual)
+                {
+                    // current value is greater, but it was less once -> we have concurrency
+                    return true;
+                }
+                else
+                {
+                    isGraterOrEqual = true;
+                }
+            }
+            else if (x <= 0)
+            {
+                if (isGraterOrEqual)
+                {
+                    // current value is lesser, but it was greater once -> we have concurrency
+                    return true;
+                }
+                else
+                {
+                    isLessOrEqual = true;
+                }
+            }
+
+            return false;
         }
 
         private int? FastCompareTo(in VectorClock other)
@@ -375,7 +479,8 @@ namespace VectorClocks
             }
             else
             {
-                throw new NotImplementedException();
+                // btw. at this point equality is not an option.
+                return !ExactCompareTo(other).HasValue;
             }
         }
 
@@ -435,7 +540,9 @@ namespace VectorClocks
             }
             else
             {
-                throw new NotImplementedException();
+                // btw. at this point equality is not an option.
+                var x = ExactCompareTo(other);
+                return x.HasValue && x.Value < 0;
             }
         }
 
@@ -488,7 +595,9 @@ namespace VectorClocks
             }
             else
             {
-                throw new NotImplementedException();
+                // btw. at this point equality is not an option.
+                var x = ExactCompareTo(other);
+                return x.HasValue && x.Value > 0;
             }
         }
 

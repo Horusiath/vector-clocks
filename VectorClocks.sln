@@ -9,11 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorClocks.Tests", "Vecto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorClocks.Benchmarks", "VectorClocks.Benchmarks\VectorClocks.Benchmarks.csproj", "{C38D01EF-ED4F-440F-AF60-286F0E04BB12}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{515EC3B7-6556-40DC-9AD2-F1BDC5E792DB}"
-	ProjectSection(SolutionItems) = preProject
-		REAME.md = REAME.md
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

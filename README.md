@@ -1,14 +1,14 @@
 This is an experiment for providing vector clocks with vectorization-aware optimizations. Some of the key assumptions where made here:
 
 1. We optimize mostly for read speed.
-2. In clustered environment we don't expect constant growth of nodes - the node set itself will grow at the beginning, but when compared to number of other operations, is should be relativelly rare.
+2. In clustered environment we don't expect constant, rapid growth of nodes - the node set itself will grow at the beginning, but when compared to number of other operations, is should be relativelly rare.
 3. Most of the time vector clocks we compare to each other are probably going to contain the same set of nodes (since replicas doesn't change so often - see: pt.2).
 
 Most vector clocks are represented as maps or lists of key-value pairs. Here we represent them instead as separate arrays for sorted keys (node identifiers) and values. If two vectors have exactly matching keys (see pt.3), we can expect that the values of corresponding keys are located in exactly the same offsets in value their arrays. This means that for things like comparisons and merge operation, we can simply apply CPU vectorization to run the same operation over multiple values at the same CPU cycle.
 
-### Initiali benchmarks
+### Initial benchmarks
 
-This is a comparison with an existing VectorClock implementation from Akka.NET.
+This is a comparison with an existing VectorClock implementation from Akka.NET (Naive prefix). Count describes number of node-value pairs stored inside vector clocks.
 
 ``` ini
 
